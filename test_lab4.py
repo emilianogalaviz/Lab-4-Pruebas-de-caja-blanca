@@ -75,3 +75,42 @@ def test_branch_coverage(students, exp_passed, exp_failed):
     assert result["passed"] == exp_passed
     assert result["failed"] == exp_failed
     assert result["overall_average"] == 0  # counter siempre es 0
+
+
+
+@pytest.mark.path
+@pytest.mark.parametrize(
+    "students, exp_passed, exp_failed, exp_output",
+    [
+        ([], [], [], ""),                                                        # P1
+        ([{"name": "Ana", "grades": None}], [], [], "Student Ana has no grades"),  # P2
+        ([{"name": "Luis", "grades": [90, 95, 100]}], ["Luis"], [], ""),         # P3
+        ([{"name": "Jorge", "grades": [65, 60, 55]}], [], [], "Jorge is in recovery"),  # P4
+        ([{"name": "Marta", "grades": [10, 20, 30]}], [], ["Marta"], ""),        # P5
+        (                                                                        # P6
+            [
+                {"name": "Ana", "grades": None},
+                {"name": "Luis", "grades": [90, 95, 100]},
+                {"name": "Jorge", "grades": [65, 60, 55]},
+                {"name": "Marta", "grades": [10, 20, 30]},
+            ],
+            ["Luis"],
+            ["Marta"],
+            "Jorge is in recovery",
+        ),
+    ],
+)
+def test_path_coverage(students, exp_passed, exp_failed, exp_output, capsys):
+    result = process_grades.process_grades(students)
+    out = capsys.readouterr().out
+    assert result["passed"] == exp_passed
+    assert result["failed"] == exp_failed
+    assert exp_output in out
+    assert result["overall_average"] == 0
+
+
+@pytest.mark.path
+@pytest.mark.parametrize("students", [[{"name": "Pedro", "grades": []}]])
+def test_path_coverage_empty_grades(students):                                  # P7
+    with pytest.raises(ZeroDivisionError):
+        process_grades.process_grades(students)
